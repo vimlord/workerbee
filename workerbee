@@ -88,12 +88,12 @@ def create_daemon(cmd):
                     shell=True)
 
             notify(
-                f"{cmd_name} has terminated successfully",
+                f"{cmd_name} has terminated successfully.",
                 f"Workerbee {os.getpid()} has terminated with exit code {n}.")
 
         except Exception as error:
             notify(
-                f"{cmd_name} has halted unexpectedly",
+                f"{cmd_name} has halted unexpectedly.",
                 f"Workerbeee {os.getpid()} terminated due to an unexpected error.",
                 cmd=MESSENGER)
             print(f'workerbee({os.getpid()}): error running running command')
