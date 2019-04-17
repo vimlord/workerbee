@@ -1,0 +1,130 @@
+#!/bin/python
+
+import subprocess
+import os
+import time
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Runs daemon workers and notifies on completion')
+
+parser.add_argument('-i', '--interactive', const=True, default=False, nargs='?', help='run workerbee in interactive mode')
+parser.add_argument('-c', '--command', metavar='CMD', type=str, default='', help='run workerbee with a single command')
+parser.add_argument('-v', '--verbose', action='store_true', help='run with verbosity')
+
+MESSENGER='notify-send'
+
+try:
+    with open(os.path.expanduser('~/.brc'), 'r') as brc:
+        for line in brc.readlines():
+            # Clean out empty lines
+            line = line.strip()
+            if not line or line[0] == '#': continue
+
+            try:
+                header, value = line.split('=')
+                header = header.strip()
+                value = value.strip()
+            except:
+                continue
+
+            if header == 'messenger':
+                # Choose an alternative command for notification
+                MESSENGER = value
+except:
+    try:
+        # Write the default 
+        with open(os.path.expanduser('~/.brc'), 'a') as f:
+            # Write fields for the default brc
+            f.write('# The following values are the defaults for workerbee\n')
+            f.write(f'#messenger={MESSENGER}\n')
+
+        print('workerbee: created new ~/.brc')
+    except:
+        # If something has gone this badly, stop here
+        print('workerbee: failed to create new ~/.brc')
+        exit(0)
+
+# Parse the arguments
+args = parser.parse_args()
+
+VERBOSE = args.verbose
+
+def vprint(*args):
+    if VERBOSE:
+        print(*args)
+
+def notify(title, subtitle=None, cmd='notify-send'):
+    try:
+        # An optional notification option
+        cmd = [cmd, title]
+        if subtitle:
+            cmd += [subtitle]
+
+        proc = subprocess.call(cmd, shell=False)
+    except:
+        pass
+
+def create_daemon(cmd):
+    vprint(f'workerbee$ {cmd}')
+
+    cmd_name = cmd.split()[0]
+
+    try:
+        pid = os.fork()
+    except:
+        print('workerbee: daemon could not be created.')
+        return 1
+    if pid:
+        # Parent does nothing but report
+        return 0
+    else:
+        # Child process runs the command
+        try:
+            # Run the program
+            n = subprocess.call(cmd,
+                    # If in verbose, print everything. Otherwise, ignore.
+                    stdout=subprocess.DEVNULL if not VERBOSE else None,
+                    shell=True)
+
+            notify(
+                f"{cmd_name} has terminated successfully",
+                f"Workerbee {os.getpid()} has terminated with exit code {n}.")
+
+        except Exception as error:
+            notify(
+                f"{cmd_name} has halted unexpectedly",
+                f"Workerbeee {os.getpid()} terminated due to an unexpected error.",
+                cmd=MESSENGER)
+            print(f'workerbee({os.getpid()}): error running running command')
+
+            # Unsuccessful termination
+            exit(1)
+
+        # Successful termination
+        exit(0)
+
+
+if (not args.interactive) == (not args.command):
+    print("workerbee: exactly one of 'interactive' or 'command' must be specified.")
+    parser.print_help()
+    exit()
+
+vprint('Running in verbose mode (this may disrupt interactive mode)')
+
+if args.interactive:
+    while True:
+        # Take input
+        cmd = input('$ ').strip()
+
+        # Check the command
+        if cmd == 'exit':
+            print('Goodbye')
+            exit(0)
+        else:
+            # Run the command
+            n = create_daemon(cmd)
+else:
+    exit(create_daemon(args.command))
+
+
