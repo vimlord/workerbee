@@ -113,6 +113,10 @@ if (not args.interactive) == (not args.command):
 vprint('Running in verbose mode (this may disrupt interactive mode)')
 
 if args.interactive:
+    print('Workerbee v1.0.0')
+    print('Hatched by vimlord')
+    print('Enter a command to spawn a worker bee, or \'exit\' to quit.')
+
     while True:
         # Take input
         cmd = input('$ ').strip()
