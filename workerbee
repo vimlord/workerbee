@@ -13,6 +13,7 @@ parser.add_argument('-c', '--command', metavar='CMD', type=str, default='', help
 parser.add_argument('-v', '--verbose', action='store_true', help='run with verbosity')
 
 MESSENGER='notify-send'
+CURSOR='$'
 
 try:
     with open(os.path.expanduser('~/.brc'), 'r') as brc:
@@ -31,6 +32,8 @@ try:
             if header == 'messenger':
                 # Choose an alternative command for notification
                 MESSENGER = value
+            elif header == "cursor":
+                CURSOR = value
 except:
     try:
         # Write the default 
@@ -38,6 +41,7 @@ except:
             # Write fields for the default brc
             f.write('# The following values are the defaults for workerbee\n')
             f.write(f'#messenger={MESSENGER}\n')
+            f.write(f'#cursor={CURSOR}\n')
 
         print('workerbee: created new ~/.brc')
     except:
@@ -119,7 +123,7 @@ if args.interactive:
 
     while True:
         # Take input
-        cmd = input('$ ').strip()
+        cmd = input(f'{CURSOR} ').strip()
 
         # Check the command
         if cmd == 'exit':
