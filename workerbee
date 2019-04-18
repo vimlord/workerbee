@@ -125,10 +125,13 @@ if args.interactive:
         # Take input
         cmd = input(f'{CURSOR} ').strip()
 
-        # Check the command
         if cmd == 'exit':
+            # Quit
             print('Goodbye')
             exit(0)
+        elif not cmd:
+            # Skip empty command
+            continue
         else:
             # Run the command
             n = create_daemon(cmd)
