@@ -58,12 +58,14 @@ def vprint(*args):
     if VERBOSE:
         print(*args)
 
-def notify(title, subtitle=None, cmd='notify-send'):
+def notify(title, subtitle=None, cmd=MESSENGER):
     try:
         # An optional notification option
         cmd = [cmd, title]
         if subtitle:
             cmd += [subtitle]
+
+        print(cmd)
 
         proc = subprocess.call(cmd, shell=False)
     except:
